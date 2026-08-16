@@ -1,0 +1,84 @@
+# ~/.bashrc — minimal, Proxmox-friendly
+# Interactive shells only
+case $- in
+  *i*) ;;
+  *) return ;;
+esac
+
+# --- PATH: make sbin tools (qm, pct, pvesm, pveum, ss, ...) discoverable ---
+export PATH="/usr/local/sbin:/usr/sbin:/sbin:$PATH"
+
+# --- History ---
+HISTCONTROL=ignoreboth        # drop duplicates and space-prefixed commands
+HISTSIZE=10000
+HISTFILESIZE=20000
+HISTTIMEFORMAT='%F %T '        # timestamp each command
+shopt -s histappend           # append instead of overwriting
+shopt -s checkwinsize         # keep $LINES/$COLUMNS correct after resize
+shopt -s globstar 2>/dev/null # ** recursive globbing
+PROMPT_COMMAND='history -a'   # write history immediately
+
+# --- Prompt (red for root, green for normal user) ---
+export CLICOLOR=1
+if [ "$(id -u)" -eq 0 ]; then
+  PS1='\[\e[1;31m\]\u@\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]# '
+else
+  PS1='\[\e[1;32m\]\u@\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]$ '
+fi
+
+# --- Colored ls / grep, and readable man pages ---
+command -v dircolors >/dev/null && eval "$(dircolors -b)"
+alias ls='ls --color=auto'
+alias grep='grep --color=auto'
+alias egrep='grep -E --color=auto'
+alias fgrep='grep -F --color=auto'
+export LESS='-R'
+export LESS_TERMCAP_md=$'\e[1;36m'  # bold cyan
+export LESS_TERMCAP_us=$'\e[1;33m'  # underline -> yellow
+export LESS_TERMCAP_me=$'\e[0m'
+export LESS_TERMCAP_se=$'\e[0m'
+export LESS_TERMCAP_ue=$'\e[0m'
+
+# --- General shortcuts ---
+alias ll='ls -lhF --group-directories-first'
+alias la='ls -lhAF --group-directories-first'
+alias l='ls -CF'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias df='df -hT'
+alias du='du -h'
+alias free='free -h'
+alias reload='source ~/.bashrc'
+alias update='sudo apt update && sudo apt full-upgrade'
+alias myip='hostname -I; ip -brief -4 address'
+alias ports='sudo ss -tulpn'          # listening TCP/UDP ports + process
+
+# --- Proxmox / diagnostics ---
+alias vms='sudo qm list'              # virtual machines
+alias cts='sudo pct list'             # LXC containers
+alias vm='sudo qm'                    # e.g. vm start 100 / vm config 100
+alias ct='sudo pct'                   # e.g. ct enter 101
+alias storage='sudo pvesm status'     # storage pools
+alias pvestat='sudo systemctl --no-pager status pve-cluster pveproxy pvedaemon pvestatd'
+alias jf='sudo journalctl -f'         # follow all logs
+alias jxe='sudo journalctl -xe'       # recent errors, verbose
+alias jboot='sudo journalctl -b -p err'  # this boot, errors and worse
+alias dmesg='sudo dmesg -T'           # kernel ring buffer, human timestamps
+alias temps='sensors 2>/dev/null'     # needs lm-sensors
+# ZFS (your RAIDZ1 pool)
+alias zp='sudo zpool status'
+alias zl='sudo zfs list'
+alias ziostat='sudo zpool iostat -v 2'
+
+# --- Small functions ---
+psg() { ps aux | grep -v grep | grep -i -- "$@"; }   # search processes: psg sshd
+mkcd() { mkdir -p -- "$1" && cd -- "$1"; }           # make dir and cd into it
+
+# --- Bash completion ---
+if ! shopt -oq posix; then
+  if [ -f /usr/share/bash-completion/bash_completion ]; then
+    . /usr/share/bash-completion/bash_completion
+  elif [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
+  fi
+fi
