@@ -1,0 +1,20 @@
+# Copy to terraform.tfvars (gitignored) and fill in. The API token is best
+# provided via env instead:  export TF_VAR_proxmox_api_token='tofu@pve!automation=<uuid>'
+
+proxmox_endpoint = "https://192.168.1.26:8006/"
+pve_node         = "proxmox"
+
+# Datastores
+iso_datastore = "local"
+vm_datastore  = "local-zfs" # e.g. local-lvm / local-zfs — your VM disk storage
+
+# Talos boot ISO — paste the URL printed by `task talos:schematic`
+talos_iso_url = "https://factory.talos.dev/image/6ebbfe35c8225645c05d4d19eaad385bd1ec795954932d0ada671388272fec19/v1.13.8/metal-amd64.iso"
+
+# Optional: pin MACs for DHCP reservations (must match nothing in talconfig,
+# which selects the NIC by driver, not MAC).
+# nodes = {
+#   talos-01 = { vm_id = 8101, mac_address = "BC:24:11:00:00:01" }
+#   talos-02 = { vm_id = 8102, mac_address = "BC:24:11:00:00:02" }
+#   talos-03 = { vm_id = 8103, mac_address = "BC:24:11:00:00:03" }
+# }
