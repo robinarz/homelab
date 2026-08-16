@@ -107,9 +107,3 @@ controlPlane:
           kubePrism:
             enabled: true
             port: 7445
-    # Run the QEMU guest agent service
-    - |-
-      machine:
-        install:
-          extraKernelArgs:
-            - net.ifnames=0
