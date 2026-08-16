@@ -40,7 +40,7 @@ spec:
         type: LoadBalancer
         annotations:
           lbipam.cilium.io/ips: ${PLEX_LB_IP}
-        externalTrafficPolicy: Local
+        externalTrafficPolicy: Cluster
         ports: { http: { port: &port 32400 } }
     route:
       app:
