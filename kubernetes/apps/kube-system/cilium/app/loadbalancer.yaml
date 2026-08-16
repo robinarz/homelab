@@ -18,6 +18,7 @@ spec:
   loadBalancerIPs: true
   interfaces:
     - ^eth[0-9]+$
+    - ^en[a-z0-9]+$
   nodeSelector:
     matchExpressions:
       - key: node-role.kubernetes.io/control-plane
