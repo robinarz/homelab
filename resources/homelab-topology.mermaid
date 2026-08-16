@@ -1,0 +1,66 @@
+%% Homelab topology — Proxmox + Talos K8s + Pangolin
+%% Edit freely. Renders at mermaid.live, VS Code (Mermaid ext), Obsidian, GitHub, etc.
+flowchart TB
+
+    %% ===================== INTERNET =====================
+    subgraph internet["🌐 Internet"]
+        user["Users<br/>Plex app · Infuse · browser"]
+        vps["VPS — Pangolin Server<br/>Public IP · 80/443 · WG UDP<br/>Traefik · Gerbil (WireGuard) · Dashboard · SSO/RBAC"]
+    end
+
+    user -->|"HTTPS / app traffic"| vps
+
+    %% ===================== PHYSICAL BOX =====================
+    subgraph pc["🖥️ Homelab PC — Ryzen 7 3000 (8c/16t) · 32GB RAM"]
+        subgraph proxmox["Proxmox VE host"]
+
+            %% ---------- Storage ----------
+            subgraph storage["💾 Storage layer (on host)"]
+                zfs[("ZFS pool — RAIDZ1<br/>4 × 4TB (~12TB usable)<br/>ARC capped ~8GB")]
+                lxc["LXC — NFS server<br/>nfs-kernel-server<br/>bind-mounts /data dataset"]
+                zfs --- lxc
+            end
+
+            %% ---------- Talos VMs ----------
+            subgraph vms["3 × Talos VMs — 4 vCPU · 8GB each"]
+                subgraph k8s["☸️ Kubernetes cluster (Talos)"]
+                    direction TB
+                    net["Network layer<br/>Cilium CNI · CoreDNS · Gateway API"]
+                    newt["Newt pod<br/>userspace WireGuard"]
+
+                    subgraph apps["Media stack (pods)"]
+                        plex["Plex<br/>direct play · no transcode"]
+                        arr["Sonarr · Radarr<br/>Prowlarr · Bazarr"]
+                        dl["SABnzbd / NZBGet<br/>qBittorrent"]
+                    end
+
+                    cfg[("Config PVCs — local-path<br/>Arr DBs · Plex metadata")]
+                end
+            end
+
+        end
+    end
+
+    %% ===================== TUNNEL =====================
+    newt <-->|"outbound WireGuard tunnel<br/>no inbound ports on ISP router"| vps
+
+    %% ===================== INTERNAL ROUTING =====================
+    newt --> net
+    net -->|"HTTPRoute"| plex
+    net -->|"HTTPRoute"| arr
+    net -->|"HTTPRoute"| dl
+
+    %% ===================== STORAGE MOUNTS =====================
+    lxc -->|"NFS RWX · single /data tree<br/>/data/media · /data/torrents · /data/usenet<br/>(hardlinks intact)"| apps
+    apps -.->|"config only"| cfg
+
+    %% ===================== STYLING =====================
+    classDef ext   fill:#1e293b,stroke:#38bdf8,color:#e2e8f0,stroke-width:1px;
+    classDef store fill:#422006,stroke:#f59e0b,color:#fde68a,stroke-width:1px;
+    classDef k     fill:#082f49,stroke:#22d3ee,color:#cffafe,stroke-width:1px;
+    classDef app   fill:#052e16,stroke:#4ade80,color:#bbf7d0,stroke-width:1px;
+
+    class user,vps ext;
+    class zfs,lxc,cfg store;
+    class net,newt k;
+    class plex,arr,dl app;
