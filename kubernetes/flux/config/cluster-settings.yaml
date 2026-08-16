@@ -21,4 +21,4 @@ data:
   GATEWAY_INTERNAL_IP: "192.168.1.50" # newt targets this
   PLEX_LB_IP: "192.168.1.51"
   # Infisical Cloud project slug for External Secrets (non-secret).
-  INFISICAL_PROJECT_SLUG: "homelab" # TODO: set to your project slug
+  INFISICAL_PROJECT_SLUG: "homelab-a-r-fm"
