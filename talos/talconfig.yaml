@@ -1,0 +1,115 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/budimanjojo/talhelper/master/pkg/config/schemas/talconfig.json
+#
+# Talos cluster definition (rendered by talhelper).
+#
+# ┌─────────────────────────────────────────────────────────────────────────┐
+# │ TODO — fill in once the Proxmox host + Talos VMs exist:                   │
+# │  • Adjust the LAN subnet / gateway / VIP / node IPs to match your network │
+# │  • Confirm the install disk (VirtIO SCSI => /dev/sda, VirtIO Block =>     │
+# │    /dev/vda). Prefer `installDiskSelector` if unsure.                     │
+# │  • 3 VMs, 4 vCPU / 8GB each, all control-plane + schedulable (HA).        │
+# └─────────────────────────────────────────────────────────────────────────┘
+
+clusterName: homelab
+talosVersion: ${TALOS_VERSION}
+kubernetesVersion: ${KUBERNETES_VERSION}
+
+# Shared virtual IP (kube-vip style, provided by Talos) for the k8s API.
+endpoint: https://192.168.1.40:6443
+
+# All three nodes are control-plane and allowed to run workloads.
+allowSchedulingOnControlPlanes: true
+
+# Cilium replaces the default CNI and kube-proxy (see patches + Flux HelmRelease).
+cniConfig:
+  name: none
+
+clusterPodNets:
+  - 10.244.0.0/16
+clusterSvcNets:
+  - 10.96.0.0/12
+
+additionalApiServerCertSans: &sans
+  - 192.168.1.40 # VIP
+  - 127.0.0.1
+additionalMachineCertSans: *sans
+
+nodes:
+  - hostname: talos-01
+    ipAddress: 192.168.1.41
+    controlPlane: true
+    installDisk: /dev/sda # TODO: verify against your Proxmox disk bus
+    networkInterfaces:
+      - deviceSelector:
+          driver: virtio_net
+        dhcp: false
+        addresses:
+          - 192.168.1.41/24
+        routes:
+          - network: 0.0.0.0/0
+            gateway: 192.168.1.1
+        vip:
+          ip: 192.168.1.40
+
+  - hostname: talos-02
+    ipAddress: 192.168.1.42
+    controlPlane: true
+    installDisk: /dev/sda
+    networkInterfaces:
+      - deviceSelector:
+          driver: virtio_net
+        dhcp: false
+        addresses:
+          - 192.168.1.42/24
+        routes:
+          - network: 0.0.0.0/0
+            gateway: 192.168.1.1
+        vip:
+          ip: 192.168.1.40
+
+  - hostname: talos-03
+    ipAddress: 192.168.1.43
+    controlPlane: true
+    installDisk: /dev/sda
+    networkInterfaces:
+      - deviceSelector:
+          driver: virtio_net
+        dhcp: false
+        addresses:
+          - 192.168.1.43/24
+        routes:
+          - network: 0.0.0.0/0
+            gateway: 192.168.1.1
+        vip:
+          ip: 192.168.1.40
+
+# Image Factory schematic — bake the QEMU guest agent into the Talos image so
+# Proxmox can see the VM state / IPs.
+controlPlane:
+  schematic:
+    customization:
+      systemExtensions:
+        officialExtensions:
+          - siderolabs/qemu-guest-agent # Proxmox guest agent
+          - siderolabs/iscsi-tools # iSCSI (future block-storage CSI)
+
+  patches:
+    # Disable kube-proxy (Cilium provides the replacement)
+    - |-
+      cluster:
+        proxy:
+          disabled: true
+    # Enable KubePrism so Cilium can reach the API via localhost:7445
+    - |-
+      machine:
+        features:
+          kubePrism:
+            enabled: true
+            port: 7445
+    # Run the QEMU guest agent service
+    - |-
+      machine:
+        install:
+          extraKernelArgs:
+            - net.ifnames=0

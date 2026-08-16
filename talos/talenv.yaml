@@ -1,0 +1,5 @@
+---
+# Software versions consumed by talconfig.yaml (talhelper substitutes ${VARS}).
+# "latest is best" — bump these as new releases land, then re-run `task talos:generate`.
+TALOS_VERSION: v1.13.8
+KUBERNETES_VERSION: v1.36.3
