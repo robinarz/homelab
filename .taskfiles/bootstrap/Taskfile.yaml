@@ -1,0 +1,20 @@
+---
+version: "3"
+
+tasks:
+  apps:
+    desc: Bootstrap Cilium + Flux onto a fresh cluster
+    cmds:
+      # Create the SOPS age secret Flux uses to decrypt secrets.
+      - kubectl create namespace flux-system --dry-run=client -o yaml | kubectl apply -f -
+      - |
+        kubectl -n flux-system create secret generic sops-age \
+          --from-file=age.agekey={{.ROOT_DIR}}/age.key \
+          --dry-run=client -o yaml | kubectl apply -f -
+      # Install Cilium + Flux via helmfile.
+      - helmfile --file {{.ROOT_DIR}}/bootstrap/helmfile.yaml sync
+    preconditions:
+      - sh: test -f {{.ROOT_DIR}}/age.key
+        msg: "age.key not found — generate it with `age-keygen -o age.key`"
+      - sh: kubectl config current-context
+        msg: "No kube context — fetch it with `task talos:kubeconfig`"

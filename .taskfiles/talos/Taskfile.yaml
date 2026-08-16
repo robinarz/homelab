@@ -1,0 +1,63 @@
+---
+version: "3"
+
+tasks:
+  latest:
+    desc: Print the latest stable Talos version
+    cmds:
+      - curl -sL https://api.github.com/repos/siderolabs/talos/releases/latest | jq -r .tag_name
+
+  schematic:
+    desc: Create the Talos Image Factory schematic (extensions from talconfig) and print image URLs
+    dir: "{{.ROOT_DIR}}/talos"
+    vars:
+      TALOS_VERSION:
+        sh: yq '.TALOS_VERSION' talenv.yaml
+      LATEST:
+        sh: curl -sL https://api.github.com/repos/siderolabs/talos/releases/latest | jq -r .tag_name
+    cmds:
+      - |
+        echo "Talos version: {{.TALOS_VERSION}}  (latest stable: {{.LATEST}})"
+        [ "{{.TALOS_VERSION}}" = "{{.LATEST}}" ] || echo "NOTE: newer stable {{.LATEST}} is available — bump talos/talenv.yaml to use it."
+        # Build the schematic from the extensions declared in talconfig.yaml (single source of truth)
+        yq '{"customization": {"systemExtensions": {"officialExtensions": .controlPlane.schematic.customization.systemExtensions.officialExtensions}}} | ... comments=""' talconfig.yaml > /tmp/talos-schematic.yaml
+        echo "--- schematic ---"; cat /tmp/talos-schematic.yaml
+        ID=$(curl -sX POST --data-binary @/tmp/talos-schematic.yaml https://factory.talos.dev/schematics | jq -r .id)
+        echo
+        echo "Schematic ID:     $ID"
+        echo "Boot ISO (amd64): https://factory.talos.dev/image/$ID/{{.TALOS_VERSION}}/metal-amd64.iso"
+        echo "Installer image:  factory.talos.dev/installer/$ID:{{.TALOS_VERSION}}"
+
+  secret:
+    desc: Generate + encrypt a new Talos secret bundle (run once)
+    cmds:
+      - talhelper gensecret > {{.ROOT_DIR}}/talos/talsecret.sops.yaml
+      - sops --encrypt --in-place {{.ROOT_DIR}}/talos/talsecret.sops.yaml
+    status:
+      - test -f {{.ROOT_DIR}}/talos/talsecret.sops.yaml
+
+  generate:
+    desc: Render Talos machine configs from talconfig.yaml
+    dir: "{{.ROOT_DIR}}/talos"
+    cmds:
+      - talhelper genconfig
+
+  apply:
+    desc: "Apply machine config to a node (e.g. task talos:apply NODE=192.168.1.11)"
+    dir: "{{.ROOT_DIR}}/talos"
+    requires:
+      vars: [NODE]
+    cmds:
+      - talhelper gencommand apply --node {{.NODE}} --extra-flags=--insecure | bash
+
+  bootstrap:
+    desc: Bootstrap etcd on the first control-plane node (run once)
+    dir: "{{.ROOT_DIR}}/talos"
+    cmds:
+      - talhelper gencommand bootstrap | bash
+
+  kubeconfig:
+    desc: Fetch the cluster kubeconfig into ./kubeconfig
+    dir: "{{.ROOT_DIR}}/talos"
+    cmds:
+      - talhelper gencommand kubeconfig --extra-flags="{{.ROOT_DIR}} --force" | bash

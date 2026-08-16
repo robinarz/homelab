@@ -1,0 +1,25 @@
+---
+version: "3"
+
+set: [pipefail]
+shopt: [globstar]
+
+vars:
+  ROOT_DIR:
+    sh: git rev-parse --show-toplevel
+
+env:
+  KUBECONFIG: "{{.ROOT_DIR}}/kubeconfig"
+  TALOSCONFIG: "{{.ROOT_DIR}}/talos/clusterconfig/talosconfig"
+  SOPS_AGE_KEY_FILE: "{{.ROOT_DIR}}/age.key"
+
+includes:
+  talos: .taskfiles/talos/Taskfile.yaml
+  bootstrap: .taskfiles/bootstrap/Taskfile.yaml
+  infra: .taskfiles/infra/Taskfile.yaml
+
+tasks:
+  default:
+    desc: List all available tasks
+    cmd: task --list
+    silent: true

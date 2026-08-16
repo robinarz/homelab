@@ -1,0 +1,31 @@
+---
+version: "3"
+
+# OpenTofu / Proxmox. Secrets (the API token) are decrypted from
+# tofu/secrets.sops.yaml at runtime by `sops exec-env` — never exported to disk
+# or shell history. Non-secret inputs live in tofu/terraform.tfvars.
+tasks:
+  init:
+    desc: Initialize OpenTofu (download providers)
+    dir: "{{.ROOT_DIR}}/tofu"
+    cmd: tofu init
+
+  plan:
+    desc: Plan the Proxmox VM changes
+    dir: "{{.ROOT_DIR}}/tofu"
+    cmd: sops exec-env secrets.sops.yaml 'tofu plan'
+
+  apply:
+    desc: Apply the Proxmox VM changes
+    dir: "{{.ROOT_DIR}}/tofu"
+    cmd: sops exec-env secrets.sops.yaml 'tofu apply'
+
+  destroy:
+    desc: Destroy the Talos VMs
+    dir: "{{.ROOT_DIR}}/tofu"
+    cmd: sops exec-env secrets.sops.yaml 'tofu destroy'
+
+  edit-secrets:
+    desc: Open the encrypted OpenTofu secrets in $EDITOR
+    dir: "{{.ROOT_DIR}}/tofu"
+    cmd: sops secrets.sops.yaml
