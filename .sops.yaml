@@ -1,0 +1,16 @@
+---
+# SOPS encryption rules. The age recipient below is the PUBLIC key from ./age.key
+# (the matching private key is gitignored and must NOT be committed).
+creation_rules:
+  # Kubernetes secrets: only encrypt the values, keep keys readable in git diffs
+  - path_regex: kubernetes/.*\.sops\.ya?ml$
+    encrypted_regex: ^(data|stringData)$
+    age: age14h4tdg6ftww8xgyrg2wrgqetkkf7deevd6azf65mhcld863jx4dsv3grx7
+
+  # Talos secrets (talhelper): encrypt the whole document
+  - path_regex: talos/.*\.sops\.ya?ml$
+    age: age14h4tdg6ftww8xgyrg2wrgqetkkf7deevd6azf65mhcld863jx4dsv3grx7
+
+  # OpenTofu env secrets (consumed by `sops exec-env`): encrypt the whole document
+  - path_regex: tofu/.*\.sops\.ya?ml$
+    age: age14h4tdg6ftww8xgyrg2wrgqetkkf7deevd6azf65mhcld863jx4dsv3grx7
