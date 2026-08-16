@@ -1,0 +1,34 @@
+# direnv
+.direnv/
+.envrc.local
+
+# Nix
+result
+result-*
+
+# Secrets / kubeconfig / talosconfig
+*.key
+*.pem
+*.age
+age.key
+kubeconfig
+talosconfig
+.decrypted~*
+*.secret.yaml
+
+# talhelper generated (contains plaintext secrets)
+talos/clusterconfig/
+
+# OpenTofu / Terraform (keep .terraform.lock.hcl committed for reproducibility)
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+
+# Editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
