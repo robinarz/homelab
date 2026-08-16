@@ -1,0 +1,77 @@
+# ~/.bashrc — Debian VPS (Pangolin host)
+case $- in
+  *i*) ;;
+  *) return ;;
+esac
+
+# --- PATH: ensure sbin tools are found ---
+export PATH="/usr/local/sbin:/usr/sbin:/sbin:$PATH"
+
+# --- Editor ---
+export EDITOR=vim
+export VISUAL=vim
+
+# --- History ---
+HISTCONTROL=ignoreboth
+HISTSIZE=10000
+HISTFILESIZE=20000
+HISTTIMEFORMAT='%F %T '
+shopt -s histappend checkwinsize
+shopt -s globstar 2>/dev/null
+PROMPT_COMMAND='history -a'
+
+# --- Prompt (red for root, green for normal user) ---
+export CLICOLOR=1
+if [ "$(id -u)" -eq 0 ]; then
+  PS1='\[\e[1;31m\]\u@\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]# '
+else
+  PS1='\[\e[1;32m\]\u@\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]$ '
+fi
+
+# --- Colors ---
+command -v dircolors >/dev/null && eval "$(dircolors -b)"
+alias ls='ls --color=auto'
+alias grep='grep --color=auto'
+export LESS='-R'
+export LESS_TERMCAP_md=$'\e[1;36m'
+export LESS_TERMCAP_us=$'\e[1;33m'
+export LESS_TERMCAP_me=$'\e[0m'
+export LESS_TERMCAP_se=$'\e[0m'
+export LESS_TERMCAP_ue=$'\e[0m'
+
+# --- General shortcuts ---
+alias ll='ls -lhF --group-directories-first'
+alias la='ls -lhAF --group-directories-first'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias df='df -hT'
+alias du='du -h'
+alias free='free -h'
+alias reload='source ~/.bashrc'
+alias update='sudo apt update && sudo apt full-upgrade'
+alias myip='curl -fsS ifconfig.me; echo; ip -brief -4 address'
+alias ports='sudo ss -tulpn'
+
+# --- Diagnostics ---
+alias jf='sudo journalctl -f'
+alias jxe='sudo journalctl -xe'
+alias jboot='sudo journalctl -b -p err'
+alias dmesg='sudo dmesg -T'
+alias f2b='sudo fail2ban-client status'
+
+# --- Docker / Compose (once installed for Pangolin) ---
+alias dps='sudo docker ps'
+alias dpsa='sudo docker ps -a'
+alias dlog='sudo docker logs -f'
+alias dcu='sudo docker compose up -d'
+alias dcd='sudo docker compose down'
+alias dcl='sudo docker compose logs -f'
+
+# --- Functions ---
+psg() { ps aux | grep -v grep | grep -i -- "$@"; }
+mkcd() { mkdir -p -- "$1" && cd -- "$1"; }
+
+# --- Bash completion ---
+if ! shopt -oq posix; then
+  [ -f /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion
+fi
