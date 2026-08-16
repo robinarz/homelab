@@ -14,7 +14,6 @@ instance:
     networkPolicy: true
   sync:
     kind: GitRepository
-    # TODO: push this repo to GitHub and set the URL (SSH or HTTPS).
-    url: https://github.com/GITHUB_USER/homelab
+    url: https://github.com/robinarz/homelab
     ref: refs/heads/main
     path: kubernetes/flux/config
