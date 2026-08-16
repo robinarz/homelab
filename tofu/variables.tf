@@ -46,9 +46,15 @@ variable "talos_version" {
   description = "Talos version (used only in the ISO filename)."
 }
 
-variable "talos_iso_url" {
+variable "talos_image_url" {
   type        = string
-  description = "Image Factory ISO URL from `task talos:schematic` (metal-amd64.iso)."
+  description = "Image Factory disk image from `task talos:schematic` (nocloud-amd64.raw.zst)."
+}
+
+variable "template_vm_id" {
+  type        = number
+  default     = 8100
+  description = "VMID of the Talos template that the nodes are cloned from."
 }
 
 # ---- VM sizing (matches the topology: 4 vCPU / 8GB each) ----

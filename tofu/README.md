@@ -39,7 +39,8 @@ cp terraform.tfvars.example terraform.tfvars   # endpoint, node, datastores, ISO
 task infra:edit-secrets                        # opens SOPS editor; paste the real token
 ```
 
-Get the ISO URL first with `task talos:schematic` and paste it into `talos_iso_url`.
+Get the image URL first with `task talos:schematic` and paste the
+`nocloud-amd64.raw.zst` line into `talos_image_url`.
 
 ## 3. Provision
 
@@ -51,13 +52,15 @@ task infra:plan
 task infra:apply
 ```
 
-This downloads the Talos ISO to the node and creates `talos-01..03`
-(4 vCPU / 8 GB / 100 GB, virtio-scsi `→ /dev/sda`, virtio NIC, QEMU agent on).
+This downloads the Talos disk image, builds a **`talos-template`**, then **clones**
+`talos-01..03` from it (4 vCPU / 8 GB / 100 GB, virtio-scsi `→ /dev/sda`, virtio
+NIC, QEMU agent on). Adding a node later is just one entry in `var.nodes`.
 
 ## 4. Bring up Talos
 
-The VMs boot the ISO into **maintenance mode** (DHCP). Find each node's temporary
-IP (Proxmox VM Summary shows it via the guest agent), then from the repo root:
+The cloned VMs boot from disk straight into **maintenance mode** (DHCP). Find each
+node's temporary IP (Proxmox VM Summary shows it via the guest agent), then from
+the repo root:
 
 ```bash
 task talos:secret        # once

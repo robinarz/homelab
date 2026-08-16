@@ -8,8 +8,8 @@ pve_node         = "proxmox"
 iso_datastore = "local"
 vm_datastore  = "local-zfs" # e.g. local-lvm / local-zfs — your VM disk storage
 
-# Talos boot ISO — paste the URL printed by `task talos:schematic`
-talos_iso_url = "https://factory.talos.dev/image/6ebbfe35c8225645c05d4d19eaad385bd1ec795954932d0ada671388272fec19/v1.13.8/metal-amd64.iso"
+# Talos disk image (nocloud, zst) — paste the URL printed by `task talos:schematic`
+talos_image_url = "https://factory.talos.dev/image/6ebbfe35c8225645c05d4d19eaad385bd1ec795954932d0ada671388272fec19/v1.13.8/nocloud-amd64.raw.zst"
 
 # Optional: pin MACs for DHCP reservations (must match nothing in talconfig,
 # which selects the NIC by driver, not MAC).

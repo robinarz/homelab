@@ -25,8 +25,9 @@ tasks:
         ID=$(curl -sX POST --data-binary @/tmp/talos-schematic.yaml https://factory.talos.dev/schematics | jq -r .id)
         echo
         echo "Schematic ID:     $ID"
-        echo "Boot ISO (amd64): https://factory.talos.dev/image/$ID/{{.TALOS_VERSION}}/metal-amd64.iso"
-        echo "Installer image:  factory.talos.dev/installer/$ID:{{.TALOS_VERSION}}"
+        echo "Disk image (tofu template): https://factory.talos.dev/image/$ID/{{.TALOS_VERSION}}/nocloud-amd64.raw.zst"
+        echo "Boot ISO (manual install):  https://factory.talos.dev/image/$ID/{{.TALOS_VERSION}}/metal-amd64.iso"
+        echo "Installer image:            factory.talos.dev/installer/$ID:{{.TALOS_VERSION}}"
 
   secret:
     desc: Generate + encrypt a new Talos secret bundle (run once)
