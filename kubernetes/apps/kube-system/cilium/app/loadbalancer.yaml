@@ -1,0 +1,24 @@
+---
+# LoadBalancer IP pool advertised over L2 (ARP) on the flat home LAN.
+# Requires l2announcements + externalIPs enabled in the Cilium values.
+apiVersion: cilium.io/v2
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: pool
+spec:
+  blocks:
+    - start: ${LB_IP_RANGE_START}
+      stop: ${LB_IP_RANGE_STOP}
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumL2AnnouncementPolicy
+metadata:
+  name: l2-policy
+spec:
+  loadBalancerIPs: true
+  interfaces:
+    - ^eth[0-9]+$
+  nodeSelector:
+    matchExpressions:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists

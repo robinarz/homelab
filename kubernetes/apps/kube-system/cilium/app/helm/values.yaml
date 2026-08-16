@@ -1,0 +1,55 @@
+---
+# Cilium values tuned for Talos: kube-proxy replacement + KubePrism.
+# https://docs.cilium.io/en/stable/installation/k8s-install-helm/
+# https://www.talos.dev/latest/kubernetes-guides/network/deploying-cilium/
+
+# Talos mounts cgroups itself; don't let Cilium remount them.
+cgroup:
+  autoMount:
+    enabled: false
+  hostRoot: /sys/fs/cgroup
+
+# Replace kube-proxy. Reach the API server through KubePrism (localhost:7445).
+kubeProxyReplacement: true
+k8sServiceHost: localhost
+k8sServicePort: 7445
+
+ipam:
+  mode: kubernetes
+
+# Security context capabilities required on Talos.
+securityContext:
+  capabilities:
+    ciliumAgent:
+      - CHOWN
+      - KILL
+      - NET_ADMIN
+      - NET_RAW
+      - IPC_LOCK
+      - SYS_ADMIN
+      - SYS_RESOURCE
+      - PERFMON
+      - BPF
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    cleanCiliumState:
+      - NET_ADMIN
+      - SYS_ADMIN
+      - SYS_RESOURCE
+
+# L2 announcements let Cilium advertise LoadBalancer / LAN IPs via ARP
+# (handy on a flat home network). Pools/policies are configured later.
+l2announcements:
+  enabled: true
+externalIPs:
+  enabled: true
+
+operator:
+  replicas: 1 # single operator is fine for a 3-node homelab
+
+
+# TODO (added when we set up networking):
+#   gatewayAPI.enabled: true   (requires Gateway API CRDs first)
+#   hubble.relay / hubble.ui   (observability)
