@@ -1,0 +1,58 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: plex
+spec:
+  chartRef: { kind: OCIRepository, name: plex }
+  interval: 1h
+  values:
+    controllers:
+      plex:
+        containers:
+          app:
+            image:
+              repository: ghcr.io/home-operations/plex
+              tag: 1.43.3.10861
+            env:
+              TZ: ${TIMEZONE}
+              PLEX_ADVERTISE_URL: https://plex.${DOMAIN}:443,http://${PLEX_LB_IP}:32400
+            probes:
+              liveness: { enabled: true }
+              readiness: { enabled: true }
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests: { cpu: 100m }
+              limits: { memory: 12Gi }
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+    service:
+      app:
+        type: LoadBalancer
+        annotations:
+          lbipam.cilium.io/ips: ${PLEX_LB_IP}
+        externalTrafficPolicy: Local
+        ports: { http: { port: &port 32400 } }
+    route:
+      app:
+        hostnames: ["plex.${DOMAIN}"]
+        parentRefs:
+          - { name: envoy-internal, namespace: network }
+    persistence:
+      config:
+        { storageClass: local-path, accessMode: ReadWriteOnce, size: 10Gi }
+      media:
+        type: nfs
+        server: ${NAS_ADDR}
+        path: ${NAS_MEDIA_PATH}
+        globalMounts: [{ path: /data, readOnly: true }]
+      tmp: { type: emptyDir }

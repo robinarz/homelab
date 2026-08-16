@@ -1,0 +1,13 @@
+---
+sonarr:
+  main:
+    base_url: http://sonarr.default.svc.cluster.local
+    api_key: !env_var SONARR_API_KEY
+    quality_definition:
+      type: series
+radarr:
+  main:
+    base_url: http://radarr.default.svc.cluster.local
+    api_key: !env_var RADARR_API_KEY
+    quality_definition:
+      type: movie
