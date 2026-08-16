@@ -21,6 +21,12 @@ variable "pve_node" {
   description = "Proxmox node name (as shown in the UI), e.g. proxmox"
 }
 
+variable "proxmox_ssh_username" {
+  type        = string
+  default     = "robinho"
+  description = "Linux user for SSH to the node (needs passwordless sudo). Used to import the template disk image."
+}
+
 # ---- Datastores / network ----
 variable "iso_datastore" {
   type        = string

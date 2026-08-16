@@ -76,8 +76,12 @@ after which it reboots off the disk.
 
 ## Notes
 
-- Everything here is **API-only** — it works even though root SSH is disabled and
-  `tofu@pve` has no Linux login.
+- Mostly **API-only**. The one exception is importing the template disk image,
+  which the provider does over **SSH as `robinho`** (root SSH stays disabled).
+  Requirements: `robinho` has passwordless sudo (already set up) and your key is
+  loaded in the agent — check with `ssh-add -l` (add it with
+  `ssh-add --apple-use-keychain ~/.ssh/id_prox1-home`). Override the SSH user
+  with `proxmox_ssh_username` if needed.
 - `terraform.tfvars` and state are gitignored; `.terraform.lock.hcl` and the
   SOPS-**encrypted** `secrets.sops.yaml` are committed.
 - Edit the token any time with `task infra:edit-secrets` (or `sops tofu/secrets.sops.yaml`).
