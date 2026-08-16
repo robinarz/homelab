@@ -1,0 +1,47 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: newt
+spec:
+  chartRef: { kind: OCIRepository, name: newt }
+  interval: 1h
+  values:
+    controllers:
+      newt:
+        replicas: 1
+        strategy: Recreate
+        containers:
+          app:
+            image:
+              repository: docker.io/fosrl/newt
+              tag: "1.15.0"
+            env:
+              # PANGOLIN_ENDPOINT / NEWT_ID / NEWT_SECRET come from the secret.
+              HOME: /tmp
+              LOG_LEVEL: INFO
+              # Continuously apply the Pangolin blueprint (private resources).
+              BLUEPRINT_FILE: /blueprint/blueprint.yaml
+            envFrom:
+              - secretRef: { name: newt-secret }
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests: { cpu: 10m }
+              limits: { memory: 128Mi }
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+    persistence:
+      tmp: { type: emptyDir }
+      blueprint:
+        type: configMap
+        name: newt-blueprint
+        globalMounts:
+          - path: /blueprint

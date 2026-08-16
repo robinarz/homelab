@@ -1,0 +1,15 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: network
+resources:
+  - ./ocirepository.yaml
+  - ./helmrelease.yaml
+  - ./secret.sops.yaml
+configMapGenerator:
+  # ${GATEWAY_INTERNAL_IP} / ${DOMAIN} are substituted by Flux at apply time.
+  - name: newt-blueprint
+    files:
+      - blueprint.yaml=./blueprint.yaml
+generatorOptions:
+  disableNameSuffixHash: true

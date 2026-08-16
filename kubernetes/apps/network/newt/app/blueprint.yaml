@@ -1,0 +1,21 @@
+---
+# Pangolin Blueprint — declarative Pangolin config, applied continuously by Newt
+# (BLUEPRINT_FILE). Docs: https://docs.pangolin.net/manage/blueprints
+#
+# One private (client-only, zero-trust) HTTP resource for the whole homelab:
+# a wildcard alias on your domain resolves ONLY through the Pangolin client and
+# forwards to the internal Envoy gateway, which routes per-hostname via the
+# apps' HTTPRoutes. Nothing is exposed to the public internet.
+private-resources:
+  homelab-apps:
+    name: Homelab Apps
+    mode: host
+    destination: ${GATEWAY_INTERNAL_IP}
+    # TODO: replace with your Newt site's identifier (niceId) from the
+    # Pangolin dashboard once the site is created.
+    site: CHANGE_ME-newt-site
+    tcp-ports: "80"
+    disable-icmp: false
+    alias: "*.${DOMAIN}"
+    roles:
+      - Admin
