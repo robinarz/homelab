@@ -22,3 +22,7 @@ spec:
       - kind: Secret
         name: cluster-secrets
         optional: true
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
