@@ -1,0 +1,22 @@
+---
+# Non-secret, cluster-wide variables available to every app via Flux postBuild
+# substitution (e.g. ${CLUSTER_DOMAIN}). Secrets live in a SOPS-encrypted
+# `cluster-secrets` Secret (added later).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-settings
+  namespace: flux-system
+data:
+  TIMEZONE: "Europe/Paris" # TODO: set your timezone
+  CLUSTER_DOMAIN: "cluster.local"
+  # Public domain fronted by the Pangolin VPS (used for HTTPRoute hostnames).
+  DOMAIN: "example.com" # TODO
+  # NFS server (the ZFS/LXC box) + the single media tree it exports.
+  NAS_ADDR: "192.168.1.30"
+  NAS_MEDIA_PATH: "/data" # exports /data/{media,torrents,usenet}
+  # Cilium LoadBalancer IP pool + pinned IPs (static block, outside DHCP .100-.254).
+  LB_IP_RANGE_START: "192.168.1.50"
+  LB_IP_RANGE_STOP: "192.168.1.69"
+  GATEWAY_INTERNAL_IP: "192.168.1.50" # newt targets this
+  PLEX_LB_IP: "192.168.1.51"
