@@ -5,7 +5,7 @@ namespace: default
 resources:
   - ./ocirepository.yaml
   - ./helmrelease.yaml
-  - ./secret.sops.yaml
+  - ./externalsecret.yaml
 configMapGenerator:
   - name: recyclarr-configmap
     files:
