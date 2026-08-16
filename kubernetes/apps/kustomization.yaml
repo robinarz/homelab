@@ -8,3 +8,4 @@ resources:
   - ./storage
   - ./network
   - ./default
+  - ./external-secrets
