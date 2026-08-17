@@ -12,7 +12,7 @@ private-resources:
     mode: host
     destination: ${GATEWAY_INTERNAL_IP}
     site: muddy-bunny-rat
-    tcp-ports: "80"
+    tcp-ports: "443"
     disable-icmp: false
     alias: "*.${DOMAIN}"
     # Admin (you) implicitly has access; Member is for any additional users.
