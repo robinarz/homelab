@@ -23,7 +23,7 @@ spec:
             args: ["sync"]
             env:
               TZ: ${TIMEZONE}
-              RECYCLARR_APP_DATA: /config
+              RECYCLARR_CONFIG_DIR: /config
             envFrom:
               - secretRef: { name: recyclarr-secret }
             securityContext:
