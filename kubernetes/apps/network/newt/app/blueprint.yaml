@@ -11,11 +11,10 @@ private-resources:
     name: Homelab Apps
     mode: host
     destination: ${GATEWAY_INTERNAL_IP}
-    # TODO: replace with your Newt site's identifier (niceId) from the
-    # Pangolin dashboard once the site is created.
-    site: CHANGE_ME-newt-site
+    site: muddy-bunny-rat
     tcp-ports: "80"
     disable-icmp: false
     alias: "*.${DOMAIN}"
+    # Admin (you) implicitly has access; Member is for any additional users.
     roles:
-      - Admin
+      - Member
