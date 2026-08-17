@@ -23,7 +23,7 @@ spec:
             args: ["sync"]
             env:
               TZ: ${TIMEZONE}
-              RECYCLARR_CONFIG_DIR: /config
+              RECYCLARR_DATA_DIR: /tmp
             envFrom:
               - secretRef: { name: recyclarr-secret }
             securityContext:
@@ -53,4 +53,6 @@ spec:
           - path: /config/recyclarr.yml
             subPath: recyclarr.yml
             readOnly: true
-      tmp: { type: emptyDir }
+      tmp:
+        type: emptyDir
+        globalMounts: [{ path: /tmp }]
