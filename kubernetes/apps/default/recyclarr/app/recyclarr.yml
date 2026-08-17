@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/recyclarr/recyclarr/refs/tags/v8.7.1/schemas/config-schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/recyclarr/recyclarr/refs/tags/v8.0.0/schemas/config-schema.json
 #
 # Quality profiles synced from TRaSH Guides. Specifying a quality profile by
 # trash_id makes Recyclarr create the profile AND all of its recommended custom
