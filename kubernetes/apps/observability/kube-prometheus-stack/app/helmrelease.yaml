@@ -86,6 +86,7 @@ spec:
             volumeMounts:
               - name: prometheus-kube-prometheus-stack-db
                 mountPath: /prometheus
+                subPath: prometheus-db
         retention: 10d
         retentionSize: 12GB
         scrapeInterval: 1m
