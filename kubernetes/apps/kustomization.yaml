@@ -10,3 +10,4 @@ resources:
   - ./network
   - ./default
   - ./external-secrets
+  - ./observability

@@ -1,0 +1,9 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: observability
+  labels:
+    # node-exporter, promtail need host-level access (hostPath/hostNetwork/hostPID),
+    # which the Talos default 'baseline' PodSecurity would block.
+    pod-security.kubernetes.io/enforce: privileged

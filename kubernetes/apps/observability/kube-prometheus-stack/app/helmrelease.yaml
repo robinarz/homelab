@@ -1,0 +1,145 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kube-prometheus-stack
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: kube-prometheus-stack
+  interval: 1h
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  values:
+    crds:
+      enabled: false # installed by the prometheus-operator-crds HelmRelease
+    cleanPrometheusOperatorObjectNames: true
+
+    # ---- Control-plane scrape targets -------------------------------------
+    # Talos binds these to localhost / needs client certs, and Cilium replaces
+    # kube-proxy. Disable them (and their alert rules) to keep targets green.
+    kubeControllerManager:
+      enabled: false
+    kubeScheduler:
+      enabled: false
+    kubeEtcd:
+      enabled: false
+    kubeProxy:
+      enabled: false
+
+    defaultRules:
+      create: true
+      rules:
+        etcd: false
+        kubeControllerManager: false
+        kubeProxy: false
+        kubeSchedulerAlerting: false
+        kubeSchedulerRecording: false
+
+    # ---- Alertmanager -----------------------------------------------------
+    alertmanager:
+      enabled: false # keep the homelab lean; enable later if you want routing
+
+    # ---- Prometheus Operator ---------------------------------------------
+    prometheusOperator:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          memory: 384Mi
+
+    # ---- kube-state-metrics & node-exporter -------------------------------
+    kube-state-metrics:
+      resources:
+        requests:
+          cpu: 20m
+          memory: 64Mi
+        limits:
+          memory: 256Mi
+    prometheus-node-exporter:
+      resources:
+        requests:
+          cpu: 20m
+          memory: 32Mi
+        limits:
+          memory: 128Mi
+
+    # ---- Prometheus -------------------------------------------------------
+    prometheus:
+      prometheusSpec:
+        retention: 10d
+        retentionSize: 12GB
+        scrapeInterval: 1m
+        # Discover ServiceMonitors/PodMonitors/Rules from ALL namespaces
+        # regardless of Helm-managed labels.
+        podMonitorSelectorNilUsesHelmValues: false
+        serviceMonitorSelectorNilUsesHelmValues: false
+        ruleSelectorNilUsesHelmValues: false
+        probeSelectorNilUsesHelmValues: false
+        scrapeConfigSelectorNilUsesHelmValues: false
+        resources:
+          requests:
+            cpu: 100m
+            memory: 700Mi
+          limits:
+            memory: 1800Mi
+        storageSpec:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: local-path
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 15Gi
+
+    # ---- Grafana ----------------------------------------------------------
+    grafana:
+      enabled: true
+      defaultDashboardsTimezone: ${TIMEZONE}
+      admin:
+        existingSecret: grafana-admin
+        userKey: admin-user
+        passwordKey: admin-password
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          memory: 384Mi
+      persistence:
+        enabled: true
+        type: pvc
+        storageClassName: local-path
+        accessModes: ["ReadWriteOnce"]
+        size: 2Gi
+      grafana.ini:
+        server:
+          root_url: https://grafana.${DOMAIN}
+        analytics:
+          check_for_updates: false
+          reporting_enabled: false
+      # Auto-discover dashboards/datasources from ConfigMaps in any namespace
+      sidecar:
+        dashboards:
+          enabled: true
+          searchNamespace: ALL
+          label: grafana_dashboard
+          provider:
+            foldersFromFilesStructure: true
+        datasources:
+          enabled: true
+          searchNamespace: ALL
+      additionalDataSources:
+        - name: Loki
+          type: loki
+          access: proxy
+          url: http://loki.observability.svc.cluster.local:3100
+          jsonData:
+            timeout: 60
+            maxLines: 1000

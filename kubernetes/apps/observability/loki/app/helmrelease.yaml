@@ -1,0 +1,88 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: loki
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: loki
+      version: 7.3.0
+      sourceRef:
+        kind: HelmRepository
+        name: grafana
+        namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  values:
+    deploymentMode: SingleBinary
+    loki:
+      auth_enabled: false
+      commonConfig:
+        replication_factor: 1
+      storage:
+        type: filesystem
+      schemaConfig:
+        configs:
+          - from: "2024-04-01"
+            store: tsdb
+            object_store: filesystem
+            schema: v13
+            index:
+              prefix: loki_index_
+              period: 24h
+      limits_config:
+        retention_period: 168h # 7 days
+        ingestion_rate_mb: 12
+        ingestion_burst_size_mb: 24
+        volume_enabled: true
+      compactor:
+        retention_enabled: true
+        delete_request_store: filesystem
+      pattern_ingester:
+        enabled: false
+      ruler:
+        enable_api: false
+      # SingleBinary requires a smaller memory footprint; disable analytics
+      analytics:
+        reporting_enabled: false
+    # Run everything in one pod
+    singleBinary:
+      replicas: 1
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          memory: 768Mi
+      persistence:
+        enabled: true
+        storageClass: local-path
+        accessModes: ["ReadWriteOnce"]
+        size: 10Gi
+    # Disable the scalable-mode components
+    read:
+      replicas: 0
+    write:
+      replicas: 0
+    backend:
+      replicas: 0
+    # Disable memory-hungry caches and extras (homelab)
+    chunksCache:
+      enabled: false
+    resultsCache:
+      enabled: false
+    lokiCanary:
+      enabled: false
+    test:
+      enabled: false
+    gateway:
+      enabled: false
+    minio:
+      enabled: false
