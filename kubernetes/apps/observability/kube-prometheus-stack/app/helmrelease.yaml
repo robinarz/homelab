@@ -73,6 +73,19 @@ spec:
     # ---- Prometheus -------------------------------------------------------
     prometheus:
       prometheusSpec:
+        # fsGroup does not chown subPath-mounted volumes (the operator mounts the
+        # data PVC with subPath: prometheus-db), so on local-path the dir stays
+        # root-owned. Chown it before Prometheus (uid 1000) starts.
+        initContainers:
+          - name: init-chown-data
+            image: busybox:1.37
+            command: ["chown", "-R", "1000:2000", "/prometheus"]
+            securityContext:
+              runAsNonRoot: false
+              runAsUser: 0
+            volumeMounts:
+              - name: prometheus-kube-prometheus-stack-db
+                mountPath: /prometheus
         retention: 10d
         retentionSize: 12GB
         scrapeInterval: 1m
