@@ -13,8 +13,8 @@
   // Only open a handful of PRs at a time so the homelab stays reviewable.
   prConcurrentLimit: 5,
   prHourlyLimit: 3,
-  // Run once a week to keep noise down; the dependency dashboard always reflects state.
-  schedule: ["* 0-6 * * 6"], // Saturday, early morning
+  // Cadence is controlled by the in-cluster Renovate CronJob (runs daily); the
+  // dependency dashboard always reflects current state.
   labels: ["renovate"],
   // ---- Managers -----------------------------------------------------------
   flux: {

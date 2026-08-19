@@ -12,3 +12,4 @@ resources:
   - ./plex/ks.yaml
   - ./recyclarr/ks.yaml
   - ./home-assistant/ks.yaml
+  - ./renovate/ks.yaml
