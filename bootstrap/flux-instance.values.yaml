@@ -2,6 +2,7 @@
 # FluxInstance: which controllers to run and where to sync from.
 instance:
   distribution:
+    # renovate: datasource=github-releases depName=fluxcd/flux2
     version: "2.9.4"
     registry: ghcr.io/fluxcd
   components:

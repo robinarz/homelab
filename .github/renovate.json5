@@ -1,0 +1,108 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":timezone(Europe/Paris)",
+    "group:recommended",
+    "helpers:pinGitHubActionDigests",
+  ],
+  dependencyDashboardTitle: "Renovate Dashboard 🤖",
+  suppressNotifications: ["prEditedNotification", "prIgnoreNotification"],
+  // Only open a handful of PRs at a time so the homelab stays reviewable.
+  prConcurrentLimit: 5,
+  prHourlyLimit: 3,
+  // Run once a week to keep noise down; the dependency dashboard always reflects state.
+  schedule: ["* 0-6 * * 6"], // Saturday, early morning
+  labels: ["renovate"],
+  // ---- Managers -----------------------------------------------------------
+  flux: {
+    fileMatch: [
+      "/kubernetes/.+\\.ya?ml$/",
+      "/bootstrap/.+\\.ya?ml$/",
+    ],
+  },
+  "helm-values": {
+    fileMatch: ["/kubernetes/.+\\.ya?ml$/"],
+  },
+  kubernetes: {
+    fileMatch: ["/kubernetes/.+\\.ya?ml$/"],
+  },
+  // ---- Custom managers ----------------------------------------------------
+  customManagers: [
+    {
+      // bjw-s app-template & other HelmReleases carry images as inline
+      //   image:
+      //     repository: <img>
+      //     tag: <ver>
+      // which the flux manager does not parse. Match the pair explicitly.
+      customType: "regex",
+      description: "Container images in HelmRelease inline values",
+      fileMatch: ["/kubernetes/.+\\.ya?ml$/"],
+      matchStrings: [
+        "repository: (?<depName>\\S+)\\n\\s+tag: [\"']?(?<currentValue>[^\"'\\s]+)[\"']?",
+      ],
+      datasourceTemplate: "docker",
+    },
+    {
+      // Plain-string versions annotated with a "# renovate:" comment, e.g.
+      //   # renovate: datasource=github-releases depName=siderolabs/talos
+      //   TALOS_VERSION: v1.13.8
+      customType: "regex",
+      description: "Annotated plain-string versions (Talos, Kubernetes, Flux, ...)",
+      fileMatch: [
+        "/talos/.+\\.ya?ml$/",
+        "/bootstrap/.+\\.ya?ml$/",
+        "/kubernetes/.+\\.ya?ml$/",
+      ],
+      matchStrings: [
+        "datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( versioning=(?<versioning>\\S+))?\\n.+?[:=]\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?",
+      ],
+      datasourceTemplate: "{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}",
+      versioningTemplate: "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}",
+    },
+  ],
+  // ---- Package rules ------------------------------------------------------
+  packageRules: [
+    {
+      description: "Flux release value is unprefixed (2.9.4) vs git tag (v2.9.4)",
+      matchDepNames: ["fluxcd/flux2"],
+      extractVersion: "^v(?<version>.+)$",
+    },
+    {
+      description: "home-operations *arr images use a loose 4-part versioning",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["ghcr.io/home-operations/**"],
+      versioning: "loose",
+    },
+    {
+      description: "Group the media (arr) app image bumps together",
+      matchDatasources: ["docker"],
+      matchPackageNames: [
+        "ghcr.io/home-operations/radarr",
+        "ghcr.io/home-operations/sonarr",
+        "ghcr.io/home-operations/prowlarr",
+        "ghcr.io/home-operations/sabnzbd",
+        "ghcr.io/home-operations/tautulli",
+      ],
+      groupName: "media apps",
+    },
+    {
+      description: "Separate a dedicated label for container image updates",
+      matchDatasources: ["docker"],
+      addLabels: ["image"],
+    },
+    {
+      description: "Label chart (Flux/Helm) updates",
+      matchManagers: ["flux", "helm-values", "helm-requirements"],
+      addLabels: ["chart"],
+    },
+    {
+      description: "Label Talos / Kubernetes / Flux core bumps and never auto-merge them",
+      matchDepNames: ["siderolabs/talos", "kubernetes/kubernetes", "fluxcd/flux2"],
+      addLabels: ["cluster"],
+      automerge: false,
+    },
+  ],
+}
