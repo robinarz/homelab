@@ -19,15 +19,15 @@
   // ---- Managers -----------------------------------------------------------
   flux: {
     fileMatch: [
-      "/kubernetes/.+\\.ya?ml$/",
-      "/bootstrap/.+\\.ya?ml$/",
+      "kubernetes/.+\\.ya?ml$",
+      "bootstrap/.+\\.ya?ml$",
     ],
   },
   "helm-values": {
-    fileMatch: ["/kubernetes/.+\\.ya?ml$/"],
+    fileMatch: ["kubernetes/.+\\.ya?ml$"],
   },
   kubernetes: {
-    fileMatch: ["/kubernetes/.+\\.ya?ml$/"],
+    fileMatch: ["kubernetes/.+\\.ya?ml$"],
   },
   // ---- Custom managers ----------------------------------------------------
   customManagers: [
@@ -39,7 +39,7 @@
       // which the flux manager does not parse. Match the pair explicitly.
       customType: "regex",
       description: "Container images in HelmRelease inline values",
-      fileMatch: ["/kubernetes/.+\\.ya?ml$/"],
+      fileMatch: ["kubernetes/.+\\.ya?ml$"],
       matchStrings: [
         "repository: (?<depName>\\S+)\\n\\s+tag: [\"']?(?<currentValue>[^\"'\\s]+)[\"']?",
       ],
@@ -52,9 +52,9 @@
       customType: "regex",
       description: "Annotated plain-string versions (Talos, Kubernetes, Flux, ...)",
       fileMatch: [
-        "/talos/.+\\.ya?ml$/",
-        "/bootstrap/.+\\.ya?ml$/",
-        "/kubernetes/.+\\.ya?ml$/",
+        "talos/.+\\.ya?ml$",
+        "bootstrap/.+\\.ya?ml$",
+        "kubernetes/.+\\.ya?ml$",
       ],
       matchStrings: [
         "datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( versioning=(?<versioning>\\S+))?\\n.+?[:=]\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?",
