@@ -2,6 +2,6 @@
 # Software versions consumed by talconfig.yaml (talhelper substitutes ${VARS}).
 # "latest is best" — bump these as new releases land, then re-run `task talos:generate`.
 # renovate: datasource=github-releases depName=siderolabs/talos
-TALOS_VERSION: v1.13.8
+TALOS_VERSION: v1.13.9
 # renovate: datasource=github-releases depName=kubernetes/kubernetes
 KUBERNETES_VERSION: v1.36.3
