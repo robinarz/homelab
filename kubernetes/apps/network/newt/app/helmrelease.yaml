@@ -15,7 +15,7 @@ spec:
           app:
             image:
               repository: docker.io/fosrl/newt
-              tag: "1.15.0"
+              tag: "1.18.1"
             env:
               # PANGOLIN_ENDPOINT / NEWT_ID / NEWT_SECRET come from the secret.
               HOME: /tmp
