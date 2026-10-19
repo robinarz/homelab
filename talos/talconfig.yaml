@@ -95,11 +95,12 @@ controlPlane:
           - siderolabs/iscsi-tools # iSCSI (future block-storage CSI)
 
   patches:
-    # Disable kube-proxy (Cilium provides the replacement)
+    # Disable kube-proxy (Cilium provides the replacement). Talos >= 1.14 uses a
+    # separate KubeProxyConfig document instead of .cluster.proxy in v1alpha1.
     - |-
-      cluster:
-        proxy:
-          disabled: true
+      apiVersion: v1alpha1
+      kind: KubeProxyConfig
+      enabled: false
     # Enable KubePrism so Cilium can reach the API via localhost:7445
     - |-
       machine:
